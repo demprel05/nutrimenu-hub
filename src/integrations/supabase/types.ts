@@ -18,20 +18,26 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_variation: boolean | null
           recipe_id: string
           user_id: string
+          variation_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
+          is_variation?: boolean | null
           recipe_id: string
           user_id: string
+          variation_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
+          is_variation?: boolean | null
           recipe_id?: string
           user_id?: string
+          variation_id?: string | null
         }
         Relationships: [
           {
@@ -39,6 +45,13 @@ export type Database = {
             columns: ["recipe_id"]
             isOneToOne: false
             referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_variation_id_fkey"
+            columns: ["variation_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_variations"
             referencedColumns: ["id"]
           },
         ]
@@ -126,6 +139,56 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      recipe_variations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          ingredients: string[]
+          instructions: string[]
+          original_recipe_id: string
+          prep_time: number | null
+          tips: string | null
+          title: string
+          variation_type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          ingredients: string[]
+          instructions: string[]
+          original_recipe_id: string
+          prep_time?: number | null
+          tips?: string | null
+          title: string
+          variation_type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          ingredients?: string[]
+          instructions?: string[]
+          original_recipe_id?: string
+          prep_time?: number | null
+          tips?: string | null
+          title?: string
+          variation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_variations_original_recipe_id_fkey"
+            columns: ["original_recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recipes: {
         Row: {
