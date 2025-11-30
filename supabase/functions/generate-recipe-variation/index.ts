@@ -50,7 +50,12 @@ Gere uma variação completa no formato JSON com:
 - ingredients: array de ingredientes (liste cada ingrediente como string)
 - instructions: array de passos de preparo (cada passo como string)
 - tips: dica única e específica para esta variação (máximo 2 frases)
+- protein: quantidade aproximada de proteínas em gramas por porção (número decimal)
+- carbs: quantidade aproximada de carboidratos em gramas por porção (número decimal)
+- calories: quantidade aproximada de calorias por porção (número inteiro)
+- servings: quantidade de porções que a receita rende (número inteiro)
 
+IMPORTANTE: Calcule as informações nutricionais de forma realista baseada nos ingredientes.
 Seja criativo mas mantenha a essência da receita original. Use linguagem simples e direta.`;
 
     console.log('Generating variation:', { variationType, recipeTitle: recipe.title });

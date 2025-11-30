@@ -195,6 +195,8 @@ export type Database = {
       }
       recipes: {
         Row: {
+          calories: number | null
+          carbs: number | null
           category_id: string
           created_at: string
           description: string | null
@@ -203,10 +205,14 @@ export type Database = {
           ingredients: string[]
           instructions: string[]
           prep_time: number | null
+          protein: number | null
+          servings: number | null
           tips: string | null
           title: string
         }
         Insert: {
+          calories?: number | null
+          carbs?: number | null
           category_id: string
           created_at?: string
           description?: string | null
@@ -215,10 +221,14 @@ export type Database = {
           ingredients: string[]
           instructions: string[]
           prep_time?: number | null
+          protein?: number | null
+          servings?: number | null
           tips?: string | null
           title: string
         }
         Update: {
+          calories?: number | null
+          carbs?: number | null
           category_id?: string
           created_at?: string
           description?: string | null
@@ -227,6 +237,8 @@ export type Database = {
           ingredients?: string[]
           instructions?: string[]
           prep_time?: number | null
+          protein?: number | null
+          servings?: number | null
           tips?: string | null
           title?: string
         }

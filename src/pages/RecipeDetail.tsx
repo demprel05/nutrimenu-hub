@@ -18,6 +18,10 @@ interface Recipe {
   ingredients: string[];
   instructions: string[];
   tips: string | null;
+  protein?: number;
+  carbs?: number;
+  calories?: number;
+  servings?: number;
 }
 
 interface RecipeVariation {
@@ -28,6 +32,10 @@ interface RecipeVariation {
   tips: string;
   variation_type: string;
   prep_time: number;
+  protein?: number;
+  carbs?: number;
+  calories?: number;
+  servings?: number;
 }
 
 const variationTypes = [
@@ -246,10 +254,43 @@ export default function RecipeDetail() {
           {recipe.description && (
             <p className="text-muted-foreground mb-4">{recipe.description}</p>
           )}
-          <div className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" />
-            <span className="text-sm font-medium">{recipe.prep_time} minutos</span>
+          
+          <div className="flex flex-wrap gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
+              <span className="text-sm font-medium">{recipe.prep_time} min</span>
+            </div>
+            
+            {recipe.servings && (
+              <div className="flex items-center gap-2">
+                <ChefHat className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium">{recipe.servings} porções</span>
+              </div>
+            )}
           </div>
+
+          {(recipe.calories || recipe.protein || recipe.carbs) && (
+            <div className="grid grid-cols-3 gap-3 pt-3 border-t border-border/50">
+              {recipe.calories && (
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-primary">{recipe.calories}</p>
+                  <p className="text-xs text-muted-foreground">kcal</p>
+                </div>
+              )}
+              {recipe.protein && (
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-primary">{recipe.protein}g</p>
+                  <p className="text-xs text-muted-foreground">Proteínas</p>
+                </div>
+              )}
+              {recipe.carbs && (
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-primary">{recipe.carbs}g</p>
+                  <p className="text-xs text-muted-foreground">Carboidratos</p>
+                </div>
+              )}
+            </div>
+          )}
         </Card>
 
         <Card className="glass-card p-6 mb-6">
@@ -342,10 +383,41 @@ export default function RecipeDetail() {
                   <p className="text-sm text-muted-foreground">{currentVariation.description}</p>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="w-4 h-4 text-primary" />
-                  <span>{currentVariation.prep_time} minutos</span>
+                <div className="flex flex-wrap gap-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-primary" />
+                    <span>{currentVariation.prep_time} min</span>
+                  </div>
+                  {currentVariation.servings && (
+                    <div className="flex items-center gap-2">
+                      <ChefHat className="w-4 h-4 text-primary" />
+                      <span>{currentVariation.servings} porções</span>
+                    </div>
+                  )}
                 </div>
+
+                {(currentVariation.calories || currentVariation.protein || currentVariation.carbs) && (
+                  <div className="grid grid-cols-3 gap-2 p-3 bg-secondary/10 rounded-lg">
+                    {currentVariation.calories && (
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-primary">{currentVariation.calories}</p>
+                        <p className="text-xs text-muted-foreground">kcal</p>
+                      </div>
+                    )}
+                    {currentVariation.protein && (
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-primary">{currentVariation.protein}g</p>
+                        <p className="text-xs text-muted-foreground">Proteínas</p>
+                      </div>
+                    )}
+                    {currentVariation.carbs && (
+                      <div className="text-center">
+                        <p className="text-lg font-bold text-primary">{currentVariation.carbs}g</p>
+                        <p className="text-xs text-muted-foreground">Carboidratos</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div>
                   <h3 className="font-bold mb-2">Ingredientes</h3>
