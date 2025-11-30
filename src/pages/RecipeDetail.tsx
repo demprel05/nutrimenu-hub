@@ -3,10 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Heart, Clock, ChefHat, Lightbulb, Loader2 } from "lucide-react";
+import { ArrowLeft, Heart, Clock, ChefHat, Lightbulb, Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Recipe {
   id: string;
@@ -19,11 +20,34 @@ interface Recipe {
   tips: string | null;
 }
 
+interface RecipeVariation {
+  title: string;
+  description: string;
+  ingredients: string[];
+  instructions: string[];
+  tips: string;
+  variation_type: string;
+  prep_time: number;
+}
+
+const variationTypes = [
+  { id: 'low-carb', label: 'Low Carb', emoji: '🥗' },
+  { id: 'vegana', label: 'Vegana', emoji: '🌱' },
+  { id: 'pre-treino', label: 'Pré-treino', emoji: '💪' },
+  { id: 'pos-treino', label: 'Pós-treino', emoji: '🏋️' },
+  { id: 'zero-acucar', label: 'Zero Açúcar', emoji: '🚫' },
+  { id: 'proteica', label: 'Proteica', emoji: '🍗' },
+];
+
 export default function RecipeDetail() {
   const { recipeId } = useParams();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [generatingVariation, setGeneratingVariation] = useState(false);
+  const [currentVariation, setCurrentVariation] = useState<RecipeVariation | null>(null);
+  const [showVariationDialog, setShowVariationDialog] = useState(false);
+  const [favoriteVariationLoading, setFavoriteVariationLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -65,11 +89,68 @@ export default function RecipeDetail() {
         .select("id")
         .eq("user_id", user.id)
         .eq("recipe_id", recipeId)
+        .eq("is_variation", false)
         .single();
 
       setIsFavorite(!!data);
     } catch (error) {
       // Not a favorite
+    }
+  };
+
+  const generateVariation = async (variationType: string) => {
+    if (!recipe) return;
+
+    setGeneratingVariation(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-recipe-variation', {
+        body: { recipe, variationType }
+      });
+
+      if (error) throw error;
+
+      setCurrentVariation(data);
+      setShowVariationDialog(true);
+      toast({ title: "Variação criada com sucesso!" });
+    } catch (error: any) {
+      console.error('Error generating variation:', error);
+      toast({
+        title: "Erro ao gerar variação",
+        description: error.message || "Tente novamente mais tarde",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingVariation(false);
+    }
+  };
+
+  const favoriteVariation = async () => {
+    if (!user || !currentVariation || !recipe) return;
+
+    setFavoriteVariationLoading(true);
+    try {
+      const { error } = await supabase
+        .from("favorites")
+        .insert([{
+          user_id: user.id,
+          recipe_id: recipe.id,
+          is_variation: true,
+          variation_data: currentVariation as any
+        }]);
+
+      if (error) throw error;
+
+      toast({ title: "Variação favoritada!" });
+      setShowVariationDialog(false);
+      setCurrentVariation(null);
+    } catch (error: any) {
+      toast({
+        title: "Erro ao favoritar variação",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setFavoriteVariationLoading(false);
     }
   };
 
@@ -200,7 +281,7 @@ export default function RecipeDetail() {
         </Card>
 
         {recipe.tips && (
-          <Card className="glass-card p-6 bg-secondary/10 border-secondary/20">
+          <Card className="glass-card p-6 bg-secondary/10 border-secondary/20 mb-6">
             <div className="flex items-start gap-3">
               <Lightbulb className="w-6 h-6 text-secondary flex-shrink-0 mt-1" />
               <div>
@@ -210,7 +291,122 @@ export default function RecipeDetail() {
             </div>
           </Card>
         )}
+
+        <Card className="glass-card p-6 bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/20">
+          <div className="flex items-center gap-3 mb-4">
+            <Sparkles className="w-6 h-6 text-primary" />
+            <h2 className="text-xl font-bold">Gerar Variação com IA</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Transforme esta receita em diferentes versões fitness personalizadas
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {variationTypes.map((type) => (
+              <Button
+                key={type.id}
+                variant="secondary"
+                className="h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => generateVariation(type.id)}
+                disabled={generatingVariation}
+              >
+                <span className="text-2xl">{type.emoji}</span>
+                <span className="text-xs">{type.label}</span>
+              </Button>
+            ))}
+          </div>
+          {generatingVariation && (
+            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-primary">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Gerando variação...</span>
+            </div>
+          )}
+        </Card>
       </div>
+
+      <Dialog open={showVariationDialog} onOpenChange={setShowVariationDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          {currentVariation && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  {currentVariation.title}
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <div>
+                  <Badge variant="secondary" className="mb-2">
+                    {variationTypes.find(t => t.id === currentVariation.variation_type)?.label}
+                  </Badge>
+                  <p className="text-sm text-muted-foreground">{currentVariation.description}</p>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="w-4 h-4 text-primary" />
+                  <span>{currentVariation.prep_time} minutos</span>
+                </div>
+
+                <div>
+                  <h3 className="font-bold mb-2">Ingredientes</h3>
+                  <ul className="space-y-1">
+                    {currentVariation.ingredients.map((ingredient, index) => (
+                      <li key={index} className="text-sm flex items-start gap-2">
+                        <Badge variant="outline" className="mt-0.5">{index + 1}</Badge>
+                        <span>{ingredient}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="font-bold mb-2">Modo de Preparo</h3>
+                  <ol className="space-y-2">
+                    {currentVariation.instructions.map((instruction, index) => (
+                      <li key={index} className="text-sm flex gap-2">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs text-primary font-bold">
+                          {index + 1}
+                        </span>
+                        <p className="flex-1">{instruction}</p>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+
+                {currentVariation.tips && (
+                  <div className="bg-secondary/10 p-3 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <Lightbulb className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h3 className="font-bold text-sm mb-1">Dica</h3>
+                        <p className="text-sm">{currentVariation.tips}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  onClick={favoriteVariation}
+                  disabled={favoriteVariationLoading}
+                  className="w-full gradient-primary"
+                >
+                  {favoriteVariationLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Heart className="w-4 h-4 mr-2" />
+                      Salvar nos Favoritos
+                    </>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
