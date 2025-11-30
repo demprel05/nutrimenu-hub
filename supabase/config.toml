@@ -1,1 +1,4 @@
 project_id = "qhlfpujlxtlbjxpreues"
+
+[functions.generate-recipe-variation]
+verify_jwt = true

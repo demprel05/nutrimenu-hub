@@ -8,9 +8,23 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
 
+import { Json } from "@/integrations/supabase/types";
+
+interface VariationData {
+  title: string;
+  description: string;
+  ingredients: string[];
+  instructions: string[];
+  tips: string;
+  variation_type: string;
+  prep_time: number;
+}
+
 interface FavoriteRecipe {
   id: string;
   recipe_id: string;
+  is_variation: boolean;
+  variation_data: Json | null;
   recipes: {
     id: string;
     title: string;
@@ -46,6 +60,8 @@ export default function Favorites() {
         .select(`
           id,
           recipe_id,
+          is_variation,
+          variation_data,
           recipes (
             id,
             title,
@@ -96,9 +112,11 @@ export default function Favorites() {
     }
   };
 
-  // Group favorites by category
+  // Group favorites by category (variations go to "Variações IA")
   const groupedFavorites = favorites.reduce((acc, fav) => {
-    const categoryName = fav.recipes.recipe_categories.name;
+    const categoryName = fav.is_variation 
+      ? "Variações IA ✨" 
+      : fav.recipes.recipe_categories.name;
     if (!acc[categoryName]) {
       acc[categoryName] = [];
     }
@@ -141,55 +159,73 @@ export default function Favorites() {
               <div key={categoryName}>
                 <h2 className="text-xl font-bold mb-4">{categoryName}</h2>
                 <div className="grid grid-cols-1 gap-4">
-                  {items.map((favorite) => (
-                    <Card
-                      key={favorite.id}
-                      className="glass-card overflow-hidden cursor-pointer hover:scale-[1.01] transition-smooth group"
-                      onClick={() => navigate(`/recipe/${favorite.recipes.id}`)}
-                    >
-                      <div className="flex gap-4">
-                        <div className="w-32 h-32 bg-gradient-to-br from-primary/20 to-secondary/20 flex-shrink-0 relative overflow-hidden">
-                          {favorite.recipes.image_url ? (
-                            <img
-                              src={favorite.recipes.image_url}
-                              alt={favorite.recipes.title}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-smooth"
-                            />
-                          ) : (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <ChefHat className="w-12 h-12 text-primary/50" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 p-4 flex flex-col justify-between">
-                          <div>
-                            <h3 className="font-bold mb-1 group-hover:text-primary transition-smooth">
-                              {favorite.recipes.title}
-                            </h3>
-                            {favorite.recipes.description && (
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {favorite.recipes.description}
-                              </p>
+                  {items.map((favorite) => {
+                    const variation = favorite.variation_data as unknown as VariationData | null;
+                    const displayTitle = favorite.is_variation && variation
+                      ? variation.title
+                      : favorite.recipes.title;
+                    const displayDescription = favorite.is_variation && variation
+                      ? variation.description
+                      : favorite.recipes.description;
+                    const displayPrepTime = favorite.is_variation && variation
+                      ? variation.prep_time
+                      : favorite.recipes.prep_time;
+
+                    return (
+                      <Card
+                        key={favorite.id}
+                        className="glass-card overflow-hidden cursor-pointer hover:scale-[1.01] transition-smooth group"
+                        onClick={() => navigate(`/recipe/${favorite.recipes.id}`)}
+                      >
+                        <div className="flex gap-4">
+                          <div className="w-32 h-32 bg-gradient-to-br from-primary/20 to-secondary/20 flex-shrink-0 relative overflow-hidden">
+                            {favorite.recipes.image_url ? (
+                              <img
+                                src={favorite.recipes.image_url}
+                                alt={displayTitle}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-smooth"
+                              />
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <ChefHat className="w-12 h-12 text-primary/50" />
+                              </div>
+                            )}
+                            {favorite.is_variation && (
+                              <div className="absolute top-2 right-2 bg-primary text-white text-xs px-2 py-1 rounded-full">
+                                ✨ IA
+                              </div>
                             )}
                           </div>
-                          <div className="flex items-center justify-between mt-2">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Clock className="w-4 h-4" />
-                              <span>{favorite.recipes.prep_time} min</span>
+                          <div className="flex-1 p-4 flex flex-col justify-between">
+                            <div>
+                              <h3 className="font-bold mb-1 group-hover:text-primary transition-smooth">
+                                {displayTitle}
+                              </h3>
+                              {displayDescription && (
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                  {displayDescription}
+                                </p>
+                              )}
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={(e) => removeFavorite(favorite.id, e)}
-                            >
-                              <Heart className="w-5 h-5 fill-red-500 text-red-500" />
-                            </Button>
+                            <div className="flex items-center justify-between mt-2">
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Clock className="w-4 h-4" />
+                                <span>{displayPrepTime} min</span>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={(e) => removeFavorite(favorite.id, e)}
+                              >
+                                <Heart className="w-5 h-5 fill-red-500 text-red-500" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </Card>
-                  ))}
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             ))}
