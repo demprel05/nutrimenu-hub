@@ -18,6 +18,10 @@ interface VariationData {
   tips: string;
   variation_type: string;
   prep_time: number;
+  protein?: number;
+  carbs?: number;
+  calories?: number;
+  servings?: number;
 }
 
 interface FavoriteRecipe {
@@ -161,8 +165,19 @@ export default function Favorites() {
                 <div className="grid grid-cols-1 gap-4">
                   {items.map((favorite) => {
                     const variation = favorite.variation_data as unknown as VariationData | null;
+                    
+                    // Get variation type label
+                    const variationTypeLabels: Record<string, string> = {
+                      'low-carb': 'Low Carb',
+                      'vegana': 'Vegana',
+                      'pre-treino': 'Pré-treino',
+                      'pos-treino': 'Pós-treino',
+                      'zero-acucar': 'Zero Açúcar',
+                      'proteica': 'Proteica'
+                    };
+                    
                     const displayTitle = favorite.is_variation && variation
-                      ? variation.title
+                      ? `${favorite.recipes.title} - ${variationTypeLabels[variation.variation_type] || variation.variation_type}`
                       : favorite.recipes.title;
                     const displayDescription = favorite.is_variation && variation
                       ? variation.description
