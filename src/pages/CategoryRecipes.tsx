@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, Clock, Heart, Loader2, ChefHat } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
+import { recipeImages } from "@/assets/recipes";
 
 interface Recipe {
   id: string;
@@ -148,9 +149,9 @@ export default function CategoryRecipes() {
             >
               <div className="flex gap-4">
                 <div className="w-32 h-32 bg-gradient-to-br from-primary/20 to-secondary/20 flex-shrink-0 relative overflow-hidden">
-                  {recipe.image_url ? (
+                  {recipe.image_url && recipeImages[recipe.image_url.split('/').pop() || ''] ? (
                     <img
-                      src={recipe.image_url}
+                      src={recipeImages[recipe.image_url.split('/').pop() || '']}
                       alt={recipe.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-smooth"
                     />

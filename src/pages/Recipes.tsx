@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Loader2, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { categoryImages } from "@/assets/categories";
 
 interface RecipeCategory {
   id: string;
@@ -67,9 +68,9 @@ export default function Recipes() {
               onClick={() => navigate(`/recipes/${category.id}`)}
             >
               <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 relative overflow-hidden">
-                {category.image_url ? (
+                {category.image_url && categoryImages[category.image_url.split('/').pop() || ''] ? (
                   <img
-                    src={category.image_url}
+                    src={categoryImages[category.image_url.split('/').pop() || '']}
                     alt={category.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-smooth"
                   />
