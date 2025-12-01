@@ -7,6 +7,7 @@ import { Heart, Loader2, ChefHat, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
+import { recipeImages } from "@/assets/recipes";
 
 import { Json } from "@/integrations/supabase/types";
 
@@ -194,9 +195,9 @@ export default function Favorites() {
                       >
                         <div className="flex gap-4">
                           <div className="w-32 h-32 bg-gradient-to-br from-primary/20 to-secondary/20 flex-shrink-0 relative overflow-hidden">
-                            {favorite.recipes.image_url ? (
+                            {favorite.recipes.image_url && recipeImages[favorite.recipes.image_url.split('/').pop() || ''] ? (
                               <img
-                                src={favorite.recipes.image_url}
+                                src={recipeImages[favorite.recipes.image_url.split('/').pop() || '']}
                                 alt={displayTitle}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-smooth"
                               />

@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { recipeImages } from "@/assets/recipes";
 
 interface Recipe {
   id: string;
@@ -213,9 +214,9 @@ export default function RecipeDetail() {
   return (
     <div className="min-h-screen bg-background pb-8">
       <div className="relative h-[40vh] bg-gradient-to-br from-primary/20 to-secondary/20 overflow-hidden">
-        {recipe.image_url ? (
+        {recipe.image_url && recipeImages[recipe.image_url.split('/').pop() || ''] ? (
           <img
-            src={recipe.image_url}
+            src={recipeImages[recipe.image_url.split('/').pop() || '']}
             alt={recipe.title}
             className="w-full h-full object-cover"
           />
