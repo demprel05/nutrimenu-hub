@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { recipeImages } from "@/assets/recipes";
 
 interface Recipe {
@@ -57,6 +58,7 @@ export default function RecipeDetail() {
   const [currentVariation, setCurrentVariation] = useState<RecipeVariation | null>(null);
   const [showVariationDialog, setShowVariationDialog] = useState(false);
   const [favoriteVariationLoading, setFavoriteVariationLoading] = useState(false);
+  const [selectedVariations, setSelectedVariations] = useState<string[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -107,19 +109,34 @@ export default function RecipeDetail() {
     }
   };
 
-  const generateVariation = async (variationType: string) => {
-    if (!recipe) return;
+  const toggleVariationSelection = (variationId: string) => {
+    setSelectedVariations(prev => 
+      prev.includes(variationId) 
+        ? prev.filter(id => id !== variationId)
+        : [...prev, variationId]
+    );
+  };
+
+  const generateVariation = async () => {
+    if (!recipe || selectedVariations.length === 0) {
+      toast({
+        title: "Selecione ao menos uma variação",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setGeneratingVariation(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-recipe-variation', {
-        body: { recipe, variationType }
+        body: { recipe, variationTypes: selectedVariations }
       });
 
       if (error) throw error;
 
       setCurrentVariation(data);
       setShowVariationDialog(true);
+      setSelectedVariations([]);
       toast({ title: "Variação criada com sucesso!" });
     } catch (error: any) {
       console.error('Error generating variation:', error);
@@ -138,13 +155,19 @@ export default function RecipeDetail() {
 
     setFavoriteVariationLoading(true);
     try {
+      // Add unique ID to variation data to avoid duplicate key errors
+      const variationWithId = {
+        ...currentVariation,
+        unique_id: `${recipe.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      };
+
       const { error } = await supabase
         .from("favorites")
         .insert([{
           user_id: user.id,
           recipe_id: recipe.id,
           is_variation: true,
-          variation_data: currentVariation as any
+          variation_data: variationWithId as any
         }]);
 
       if (error) throw error;
@@ -340,28 +363,49 @@ export default function RecipeDetail() {
             <h2 className="text-xl font-bold">Gerar Variação com IA</h2>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
-            Transforme esta receita em diferentes versões fitness personalizadas
+            Selecione uma ou mais opções para criar sua variação personalizada
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
             {variationTypes.map((type) => (
-              <Button
+              <div
                 key={type.id}
-                variant="secondary"
-                className="h-auto py-3 flex flex-col items-center gap-1"
-                onClick={() => generateVariation(type.id)}
-                disabled={generatingVariation}
+                className={`border rounded-lg p-3 cursor-pointer transition-all ${
+                  selectedVariations.includes(type.id)
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border hover:border-primary/50'
+                }`}
+                onClick={() => toggleVariationSelection(type.id)}
               >
-                <span className="text-2xl">{type.emoji}</span>
-                <span className="text-xs">{type.label}</span>
-              </Button>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={selectedVariations.includes(type.id)}
+                    onCheckedChange={() => toggleVariationSelection(type.id)}
+                  />
+                  <div className="flex-1 flex flex-col items-center gap-1">
+                    <span className="text-2xl">{type.emoji}</span>
+                    <span className="text-xs font-medium">{type.label}</span>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
-          {generatingVariation && (
-            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-primary">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Gerando variação...</span>
-            </div>
-          )}
+          <Button
+            onClick={generateVariation}
+            disabled={generatingVariation || selectedVariations.length === 0}
+            className="w-full gradient-primary"
+          >
+            {generatingVariation ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Gerando variação...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Gerar Variação ({selectedVariations.length} selecionada{selectedVariations.length !== 1 ? 's' : ''})
+              </>
+            )}
+          </Button>
         </Card>
       </div>
 
@@ -378,9 +422,13 @@ export default function RecipeDetail() {
 
               <div className="space-y-4">
                 <div>
-                  <Badge variant="secondary" className="mb-2">
-                    {variationTypes.find(t => t.id === currentVariation.variation_type)?.label}
-                  </Badge>
+                  {currentVariation.variation_type && (
+                    <Badge variant="secondary" className="mb-2">
+                      {currentVariation.variation_type.split(',').map(v => 
+                        variationTypes.find(t => t.id === v.trim())?.label || v
+                      ).join(' + ')}
+                    </Badge>
+                  )}
                   <p className="text-sm text-muted-foreground">{currentVariation.description}</p>
                 </div>
 

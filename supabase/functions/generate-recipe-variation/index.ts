@@ -12,11 +12,11 @@ serve(async (req) => {
   }
 
   try {
-    const { recipe, variationType } = await req.json();
+    const { recipe, variationTypes } = await req.json();
     
-    if (!recipe || !variationType) {
+    if (!recipe || !variationTypes || !Array.isArray(variationTypes) || variationTypes.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Recipe and variation type are required' }),
+        JSON.stringify({ error: 'Recipe and at least one variation type are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -26,17 +26,20 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Create prompt based on variation type
-    const variationPrompts = {
-      'low-carb': 'Adapte esta receita para ser low carb (baixo carboidrato). Substitua ingredientes ricos em carboidratos por alternativas low carb.',
-      'vegana': 'Transforme esta receita em uma versão vegana. Substitua todos os ingredientes de origem animal por alternativas veganas.',
-      'pre-treino': 'Adapte esta receita para ser ideal como refeição pré-treino, com mais carboidratos complexos e proteína moderada.',
-      'pos-treino': 'Transforme esta receita em uma refeição pós-treino perfeita, rica em proteínas e carboidratos para recuperação muscular.',
-      'zero-acucar': 'Adapte esta receita para ser zero açúcar. Substitua todos os açúcares por adoçantes naturais ou elimine quando possível.',
-      'proteica': 'Crie uma versão mais proteica desta receita, aumentando significativamente o conteúdo de proteínas.'
+    // Create prompt based on variation types
+    const variationPrompts: Record<string, string> = {
+      'low-carb': 'low carb (baixo carboidrato)',
+      'vegana': 'vegana',
+      'pre-treino': 'ideal para pré-treino (mais carboidratos complexos e proteína moderada)',
+      'pos-treino': 'ideal para pós-treino (rica em proteínas e carboidratos para recuperação)',
+      'zero-acucar': 'zero açúcar (sem açúcares, use adoçantes naturais)',
+      'proteica': 'mais proteica (aumente significativamente o conteúdo de proteínas)'
     };
 
-    const prompt = `${variationPrompts[variationType as keyof typeof variationPrompts]}
+    const selectedVariations = variationTypes.map(type => variationPrompts[type]).filter(Boolean);
+    const combinedVariation = selectedVariations.join(', ');
+
+    const prompt = `Adapte esta receita para ser ${combinedVariation}. Combine todas essas características em uma única receita.
 
 Receita original:
 Título: ${recipe.title}
@@ -58,7 +61,7 @@ Gere uma variação completa no formato JSON com:
 IMPORTANTE: Calcule as informações nutricionais de forma realista baseada nos ingredientes.
 Seja criativo mas mantenha a essência da receita original. Use linguagem simples e direta.`;
 
-    console.log('Generating variation:', { variationType, recipeTitle: recipe.title });
+    console.log('Generating variation:', { variationTypes, recipeTitle: recipe.title });
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -125,7 +128,7 @@ Seja criativo mas mantenha a essência da receita original. Use linguagem simple
     return new Response(
       JSON.stringify({
         ...variation,
-        variation_type: variationType,
+        variation_type: variationTypes.join(','),
         prep_time: recipe.prep_time
       }),
       { 
