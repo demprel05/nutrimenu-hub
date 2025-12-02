@@ -304,7 +304,15 @@ export default function Favorites() {
                       <Card
                         key={favorite.id}
                         className="glass-card overflow-hidden cursor-pointer hover:scale-[1.01] transition-smooth group"
-                        onClick={() => navigate(`/recipe/${favorite.recipes.id}`)}
+                        onClick={() => {
+                          if (favorite.is_variation && variation) {
+                            setCurrentVariation(variation);
+                            setSelectedRecipeForVariation({ recipe_id: favorite.recipe_id, variation });
+                            setShowVariationDialog(true);
+                          } else {
+                            navigate(`/recipe/${favorite.recipes.id}`);
+                          }
+                        }}
                       >
                         <div className="flex gap-4">
                           <div className="w-32 h-32 bg-gradient-to-br from-primary/20 to-secondary/20 flex-shrink-0 relative overflow-hidden">
@@ -438,7 +446,7 @@ export default function Favorites() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showVariationDialog && !!currentVariation} onOpenChange={(open) => {
+      <Dialog open={showVariationDialog && !!currentVariation && !selectedVariations.length} onOpenChange={(open) => {
         if (!open) {
           setShowVariationDialog(false);
           setCurrentVariation(null);
