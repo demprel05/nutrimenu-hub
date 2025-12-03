@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Heart, Clock, ChefHat, Lightbulb, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Heart, Clock, ChefHat, Lightbulb, Loader2, Sparkles, Carrot, Leaf, Zap, Dumbbell, Ban, Drumstick } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { Badge } from "@/components/ui/badge";
@@ -41,12 +41,12 @@ interface RecipeVariation {
 }
 
 const variationTypes = [
-  { id: 'low-carb', label: 'Low Carb', emoji: '🥗' },
-  { id: 'vegana', label: 'Vegana', emoji: '🌱' },
-  { id: 'pre-treino', label: 'Pré-treino', emoji: '💪' },
-  { id: 'pos-treino', label: 'Pós-treino', emoji: '🏋️' },
-  { id: 'zero-acucar', label: 'Zero Açúcar', emoji: '🚫' },
-  { id: 'proteica', label: 'Proteica', emoji: '🍗' },
+  { id: 'low-carb', label: 'Low Carb', icon: Carrot, color: 'text-orange-500' },
+  { id: 'vegana', label: 'Vegana', icon: Leaf, color: 'text-green-500' },
+  { id: 'pre-treino', label: 'Pré-treino', icon: Zap, color: 'text-yellow-500' },
+  { id: 'pos-treino', label: 'Pós-treino', icon: Dumbbell, color: 'text-blue-500' },
+  { id: 'zero-acucar', label: 'Zero Açúcar', icon: Ban, color: 'text-red-500' },
+  { id: 'proteica', label: 'Proteica', icon: Drumstick, color: 'text-amber-600' },
 ];
 
 export default function RecipeDetail() {
@@ -366,28 +366,27 @@ export default function RecipeDetail() {
             Selecione uma ou mais opções para criar sua variação personalizada
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-            {variationTypes.map((type) => (
-              <div
-                key={type.id}
-                className={`border rounded-lg p-3 cursor-pointer transition-all ${
-                  selectedVariations.includes(type.id)
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:border-primary/50'
-                }`}
-                onClick={() => toggleVariationSelection(type.id)}
-              >
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={selectedVariations.includes(type.id)}
-                    onCheckedChange={() => toggleVariationSelection(type.id)}
-                  />
-                  <div className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-2xl">{type.emoji}</span>
-                    <span className="text-xs font-medium">{type.label}</span>
+            {variationTypes.map((type) => {
+              const IconComponent = type.icon;
+              return (
+                <div
+                  key={type.id}
+                  className={`border rounded-xl p-4 cursor-pointer transition-all ${
+                    selectedVariations.includes(type.id)
+                      ? 'border-primary bg-primary/10 shadow-md'
+                      : 'border-border/50 hover:border-primary/50 hover:bg-muted/30'
+                  }`}
+                  onClick={() => toggleVariationSelection(type.id)}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <div className={`p-2 rounded-lg bg-muted/50 ${selectedVariations.includes(type.id) ? 'bg-primary/20' : ''}`}>
+                      <IconComponent className={`w-6 h-6 ${type.color}`} />
+                    </div>
+                    <span className="text-xs font-medium text-center">{type.label}</span>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <Button
             onClick={generateVariation}
