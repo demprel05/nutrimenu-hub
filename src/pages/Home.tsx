@@ -26,7 +26,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDEzNGg4djhoLTh6bTAgMTZoOHY4aC04em0wIDE2aDh2OGgtOHptMCAxNmg4djhoLTh6bTAgMTZoOHY4aC04em0wIDE2aDh2OGgtOHptMCAxNmg4djhoLTh6bTE2LTE0NGg4djhoLTh6bTAgMTZoOHY4aC04em0wIDE2aDh2OGgtOHptMCAxNmg4djhoLTh6bTAgMTZoOHY4aC04em0wIDE2aDh2OGgtOHptMCAxNmg4djhoLTh6bTE2LTE0NGg4djhoLTh6bTAgMTZoOHY4aC04em0wIDE2aDh2OGgtOHptMCAxNmg4djhoLTh6bTAgMTZoOHY4aC04em0wIDE2aDh2OGgtOHptMCAxNmg4djhoLTh6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
         <div className="text-center z-10 px-4">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
-            Receitas Fit
+            SaborFit - Receitas
           </h1>
           <p className="text-muted-foreground text-lg">
             Cozinhe saudável, viva melhor

@@ -81,8 +81,8 @@ export default function Auth() {
             <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4 glow-primary">
               <ChefHat className="w-8 h-8 text-primary" />
             </div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Receitas Fit
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+              SaborFit - Receitas
             </h1>
             <p className="text-muted-foreground text-center mt-2">
               {isLogin ? "Entre na sua conta" : "Crie sua conta"}
