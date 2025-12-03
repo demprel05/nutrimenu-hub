@@ -64,6 +64,7 @@ export default function Favorites() {
   const [favoriteVariationLoading, setFavoriteVariationLoading] = useState(false);
   const [selectedVariations, setSelectedVariations] = useState<string[]>([]);
   const [selectedRecipeForVariation, setSelectedRecipeForVariation] = useState<{ recipe_id: string, variation: VariationData } | null>(null);
+  const [isViewingFavoritedVariation, setIsViewingFavoritedVariation] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -175,6 +176,7 @@ export default function Favorites() {
       setCurrentVariation(data);
       setShowVariationDialog(false);
       setSelectedVariations([]);
+      setIsViewingFavoritedVariation(false);
       
       setTimeout(() => {
         setShowVariationDialog(true);
@@ -308,6 +310,7 @@ export default function Favorites() {
                           if (favorite.is_variation && variation) {
                             setCurrentVariation(variation);
                             setSelectedRecipeForVariation({ recipe_id: favorite.recipe_id, variation });
+                            setIsViewingFavoritedVariation(true);
                             setShowVariationDialog(true);
                           } else {
                             navigate(`/recipe/${favorite.recipes.id}`);
@@ -451,6 +454,7 @@ export default function Favorites() {
           setShowVariationDialog(false);
           setCurrentVariation(null);
           setSelectedRecipeForVariation(null);
+          setIsViewingFavoritedVariation(false);
         }
       }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -549,23 +553,25 @@ export default function Favorites() {
                   </div>
                 )}
 
-                <Button
-                  onClick={favoriteNewVariation}
-                  disabled={favoriteVariationLoading}
-                  className="w-full gradient-primary"
-                >
-                  {favoriteVariationLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      Salvando...
-                    </>
-                  ) : (
-                    <>
-                      <Heart className="w-4 h-4 mr-2" />
-                      Salvar nos Favoritos
-                    </>
-                  )}
-                </Button>
+                {!isViewingFavoritedVariation && (
+                  <Button
+                    onClick={favoriteNewVariation}
+                    disabled={favoriteVariationLoading}
+                    className="w-full gradient-primary"
+                  >
+                    {favoriteVariationLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Salvando...
+                      </>
+                    ) : (
+                      <>
+                        <Heart className="w-4 h-4 mr-2" />
+                        Salvar nos Favoritos
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </>
           )}
