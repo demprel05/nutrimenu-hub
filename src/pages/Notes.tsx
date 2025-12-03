@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { StickyNote, Plus, Pencil, Trash2, Loader2, X, Image } from "lucide-react";
+import { StickyNote, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import {
@@ -22,15 +22,29 @@ interface Note {
   title: string;
   content: string | null;
   image_url: string | null;
+  color: string | null;
   created_at: string;
 }
+
+const noteColors = [
+  { id: 'orange', bg: 'bg-orange-500/10', border: 'border-orange-500/50 shadow-[0_0_12px_rgba(249,115,22,0.3)]', label: 'Laranja' },
+  { id: 'green', bg: 'bg-green-500/10', border: 'border-green-500/50 shadow-[0_0_12px_rgba(34,197,94,0.3)]', label: 'Verde' },
+  { id: 'blue', bg: 'bg-blue-500/10', border: 'border-blue-500/50 shadow-[0_0_12px_rgba(59,130,246,0.3)]', label: 'Azul' },
+  { id: 'purple', bg: 'bg-purple-500/10', border: 'border-purple-500/50 shadow-[0_0_12px_rgba(168,85,247,0.3)]', label: 'Roxo' },
+  { id: 'pink', bg: 'bg-pink-500/10', border: 'border-pink-500/50 shadow-[0_0_12px_rgba(236,72,153,0.3)]', label: 'Rosa' },
+];
+
+const getColorClasses = (colorId: string | null) => {
+  const color = noteColors.find(c => c.id === colorId) || noteColors[0];
+  return { bg: color.bg, border: color.border };
+};
 
 export default function Notes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
-  const [formData, setFormData] = useState({ title: "", content: "", image_url: "" });
+  const [formData, setFormData] = useState({ title: "", content: "", image_url: "", color: "orange" });
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -75,6 +89,7 @@ export default function Notes() {
             title: formData.title,
             content: formData.content,
             image_url: formData.image_url || null,
+            color: formData.color,
           })
           .eq("id", editingNote.id);
 
@@ -86,6 +101,7 @@ export default function Notes() {
           title: formData.title,
           content: formData.content,
           image_url: formData.image_url || null,
+          color: formData.color,
         });
 
         if (error) throw error;
@@ -93,7 +109,7 @@ export default function Notes() {
       }
 
       setIsDialogOpen(false);
-      setFormData({ title: "", content: "", image_url: "" });
+      setFormData({ title: "", content: "", image_url: "", color: "orange" });
       setEditingNote(null);
       loadNotes();
     } catch (error: any) {
@@ -127,6 +143,7 @@ export default function Notes() {
       title: note.title,
       content: note.content || "",
       image_url: note.image_url || "",
+      color: note.color || "orange",
     });
     setIsDialogOpen(true);
   };
@@ -134,7 +151,7 @@ export default function Notes() {
   const closeDialog = () => {
     setIsDialogOpen(false);
     setEditingNote(null);
-    setFormData({ title: "", content: "", image_url: "" });
+    setFormData({ title: "", content: "", image_url: "", color: "orange" });
   };
 
   if (loading) {
@@ -207,6 +224,32 @@ export default function Notes() {
                   />
                 </div>
 
+                {/* Color Picker */}
+                <div className="space-y-2">
+                  <Label>Cor do Card</Label>
+                  <div className="flex gap-3">
+                    {noteColors.map((color) => (
+                      <button
+                        key={color.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, color: color.id })}
+                        className={`w-10 h-10 rounded-full border-2 transition-all ${
+                          color.id === 'orange' ? 'bg-orange-500' :
+                          color.id === 'green' ? 'bg-green-500' :
+                          color.id === 'blue' ? 'bg-blue-500' :
+                          color.id === 'purple' ? 'bg-purple-500' :
+                          'bg-pink-500'
+                        } ${
+                          formData.color === color.id 
+                            ? 'ring-2 ring-offset-2 ring-offset-background ring-white scale-110' 
+                            : 'opacity-70 hover:opacity-100'
+                        }`}
+                        title={color.label}
+                      />
+                    ))}
+                  </div>
+                </div>
+
                 <div className="flex gap-2">
                   <Button type="submit" className="flex-1 gradient-primary">
                     {editingNote ? "Atualizar" : "Criar"}
@@ -235,45 +278,51 @@ export default function Notes() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {notes.map((note) => (
-              <Card key={note.id} className="glass-card overflow-hidden group">
-                {note.image_url && (
-                  <div className="aspect-video bg-gradient-to-br from-primary/20 to-secondary/20 relative overflow-hidden">
-                    <img
-                      src={note.image_url}
-                      alt={note.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-smooth"
-                    />
-                  </div>
-                )}
-                <div className="p-4">
-                  <h3 className="font-bold text-lg mb-2">{note.title}</h3>
-                  {note.content && (
-                    <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-                      {note.content}
-                    </p>
+            {notes.map((note) => {
+              const colorClasses = getColorClasses(note.color);
+              return (
+                <Card 
+                  key={note.id} 
+                  className={`overflow-hidden group border-2 ${colorClasses.bg} ${colorClasses.border} transition-all hover:scale-[1.02]`}
+                >
+                  {note.image_url && (
+                    <div className="aspect-video relative overflow-hidden">
+                      <img
+                        src={note.image_url}
+                        alt={note.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-smooth"
+                      />
+                    </div>
                   )}
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openEditDialog(note)}
-                      className="flex-1"
-                    >
-                      <Pencil className="w-4 h-4 mr-2" />
-                      Editar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDelete(note.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-2">{note.title}</h3>
+                    {note.content && (
+                      <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+                        {note.content}
+                      </p>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openEditDialog(note)}
+                        className="flex-1"
+                      >
+                        <Pencil className="w-4 h-4 mr-2" />
+                        Editar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDelete(note.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
