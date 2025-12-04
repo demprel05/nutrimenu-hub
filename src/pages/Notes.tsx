@@ -32,6 +32,7 @@ const noteColors = [
   { id: 'blue', bg: 'bg-blue-500/10', border: 'border-blue-500/50 shadow-[0_0_12px_rgba(59,130,246,0.3)]', label: 'Azul' },
   { id: 'purple', bg: 'bg-purple-500/10', border: 'border-purple-500/50 shadow-[0_0_12px_rgba(168,85,247,0.3)]', label: 'Roxo' },
   { id: 'pink', bg: 'bg-pink-500/10', border: 'border-pink-500/50 shadow-[0_0_12px_rgba(236,72,153,0.3)]', label: 'Rosa' },
+  { id: 'red', bg: 'bg-red-500/10', border: 'border-red-500/50 shadow-[0_0_12px_rgba(239,68,68,0.3)]', label: 'Vermelho' },
 ];
 
 const getColorClasses = (colorId: string | null) => {
@@ -238,7 +239,8 @@ export default function Notes() {
                           color.id === 'green' ? 'bg-green-500' :
                           color.id === 'blue' ? 'bg-blue-500' :
                           color.id === 'purple' ? 'bg-purple-500' :
-                          'bg-pink-500'
+                          color.id === 'pink' ? 'bg-pink-500' :
+                          'bg-red-500'
                         } ${
                           formData.color === color.id 
                             ? 'ring-2 ring-offset-2 ring-offset-background ring-white scale-110' 
