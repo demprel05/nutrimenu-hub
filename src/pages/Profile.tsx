@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { User, LogOut, Sun, Moon, Loader2, Save, Camera } from "lucide-react";
+import { User, LogOut, Sun, Moon, Loader2, Save, Camera, Pencil, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { Switch } from "@/components/ui/switch";
@@ -214,21 +214,22 @@ export default function Profile() {
         <Card className="glass-card p-6 mb-6">
           <div className="flex items-center gap-4 mb-6">
             <div className="relative group">
-              <Avatar className="w-20 h-20">
+              <Avatar className="w-20 h-20 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                 <AvatarImage src={avatarUrl} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
                   {fullName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
                 </AvatarFallback>
               </Avatar>
+              {/* Ícone de edição sempre visível */}
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingAvatar}
-                className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary rounded-full flex items-center justify-center shadow-lg border-2 border-background hover:scale-110 transition-transform"
               >
                 {uploadingAvatar ? (
-                  <Loader2 className="w-6 h-6 text-white animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 text-primary-foreground animate-spin" />
                 ) : (
-                  <Camera className="w-6 h-6 text-white" />
+                  <Pencil className="w-3.5 h-3.5 text-primary-foreground" />
                 )}
               </button>
               <input
@@ -242,7 +243,6 @@ export default function Profile() {
             <div>
               <p className="text-sm text-muted-foreground">Email</p>
               <p className="font-medium">{user?.email}</p>
-              <p className="text-xs text-muted-foreground mt-1">Clique na foto para alterar</p>
             </div>
           </div>
 
@@ -334,6 +334,24 @@ export default function Profile() {
             </div>
             <Switch checked={isDarkMode} onCheckedChange={toggleTheme} />
           </div>
+        </Card>
+
+        {/* Suporte WhatsApp */}
+        <Card className="glass-card p-6 mb-6">
+          <a
+            href="https://wa.me/5599987985586"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+          >
+            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+              <MessageCircle className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="font-medium">Suporte</p>
+              <p className="text-sm text-muted-foreground">(99) 98798-5586</p>
+            </div>
+          </a>
         </Card>
 
         {/* Sign Out */}
