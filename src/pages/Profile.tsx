@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { User, LogOut, Sun, Moon, Loader2, Save } from "lucide-react";
+import { User, LogOut, Sun, Moon, Loader2, Save, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { Switch } from "@/components/ui/switch";
@@ -15,6 +15,7 @@ export default function Profile() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -22,6 +23,7 @@ export default function Profile() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const { toast } = useToast();
   const { user, signOut } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -63,6 +65,61 @@ export default function Profile() {
     }
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Selecione uma imagem válida", variant: "destructive" });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Imagem muito grande (máx 2MB)", variant: "destructive" });
+      return;
+    }
+
+    setUploadingAvatar(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/avatar.${fileExt}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Add timestamp to force refresh
+      const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
+      setAvatarUrl(urlWithTimestamp);
+
+      // Update profile in database
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: urlWithTimestamp })
+        .eq("user_id", user.id);
+
+      if (updateError) throw updateError;
+
+      toast({ title: "Foto atualizada!" });
+    } catch (error: any) {
+      toast({ title: "Erro ao enviar foto", variant: "destructive" });
+      console.error("Upload error:", error);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleSaveProfile = async () => {
     if (!user) return;
     setSaving(true);
@@ -72,20 +129,15 @@ export default function Profile() {
         .from("profiles")
         .update({
           full_name: fullName,
-          avatar_url: avatarUrl,
         })
         .eq("user_id", user.id);
 
       if (error) throw error;
 
-      toast({ title: "Perfil atualizado com sucesso!" });
+      toast({ title: "Perfil salvo!" });
       loadProfile();
     } catch (error: any) {
-      toast({
-        title: "Erro ao atualizar perfil",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Erro ao salvar", variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -93,20 +145,12 @@ export default function Profile() {
 
   const handleChangePassword = async () => {
     if (!newPassword || newPassword !== confirmPassword) {
-      toast({
-        title: "Erro",
-        description: "As senhas não coincidem",
-        variant: "destructive",
-      });
+      toast({ title: "Senhas não coincidem", variant: "destructive" });
       return;
     }
 
     if (newPassword.length < 6) {
-      toast({
-        title: "Erro",
-        description: "A senha deve ter pelo menos 6 caracteres",
-        variant: "destructive",
-      });
+      toast({ title: "Mínimo 6 caracteres", variant: "destructive" });
       return;
     }
 
@@ -117,15 +161,11 @@ export default function Profile() {
 
       if (error) throw error;
 
-      toast({ title: "Senha alterada com sucesso!" });
+      toast({ title: "Senha alterada!" });
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
-      toast({
-        title: "Erro ao alterar senha",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Erro ao alterar senha", variant: "destructive" });
     }
   };
 
@@ -173,15 +213,36 @@ export default function Profile() {
         {/* User Info */}
         <Card className="glass-card p-6 mb-6">
           <div className="flex items-center gap-4 mb-6">
-            <Avatar className="w-20 h-20">
-              <AvatarImage src={avatarUrl} />
-              <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                {fullName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative group">
+              <Avatar className="w-20 h-20">
+                <AvatarImage src={avatarUrl} />
+                <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                  {fullName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              >
+                {uploadingAvatar ? (
+                  <Loader2 className="w-6 h-6 text-white animate-spin" />
+                ) : (
+                  <Camera className="w-6 h-6 text-white" />
+                )}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+            </div>
             <div>
               <p className="text-sm text-muted-foreground">Email</p>
               <p className="font-medium">{user?.email}</p>
+              <p className="text-xs text-muted-foreground mt-1">Clique na foto para alterar</p>
             </div>
           </div>
 
@@ -193,17 +254,6 @@ export default function Profile() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Seu nome"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="avatarUrl">URL da foto de perfil</Label>
-              <Input
-                id="avatarUrl"
-                type="url"
-                value={avatarUrl}
-                onChange={(e) => setAvatarUrl(e.target.value)}
-                placeholder="https://exemplo.com/foto.jpg"
               />
             </div>
 
@@ -220,7 +270,7 @@ export default function Profile() {
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  Salvar Alterações
+                  Salvar Nome
                 </>
               )}
             </Button>

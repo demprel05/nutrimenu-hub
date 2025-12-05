@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { StickyNote, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { StickyNote, Plus, Pencil, Trash2, Loader2, ImagePlus, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import {
@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 interface Note {
@@ -46,8 +47,11 @@ export default function Notes() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [formData, setFormData] = useState({ title: "", content: "", image_url: "", color: "orange" });
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -68,14 +72,61 @@ export default function Notes() {
       if (error) throw error;
       setNotes(data || []);
     } catch (error: any) {
-      toast({
-        title: "Erro ao carregar anotações",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Erro ao carregar", variant: "destructive" });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Selecione uma imagem válida", variant: "destructive" });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Imagem muito grande (máx 5MB)", variant: "destructive" });
+      return;
+    }
+
+    setUploadingImage(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('note-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('note-images')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, image_url: publicUrl });
+      setImagePreview(publicUrl);
+      toast({ title: "Imagem adicionada!" });
+    } catch (error: any) {
+      toast({ title: "Erro ao enviar imagem", variant: "destructive" });
+      console.error("Upload error:", error);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const removeImage = () => {
+    setFormData({ ...formData, image_url: "" });
+    setImagePreview(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -111,14 +162,11 @@ export default function Notes() {
 
       setIsDialogOpen(false);
       setFormData({ title: "", content: "", image_url: "", color: "orange" });
+      setImagePreview(null);
       setEditingNote(null);
       loadNotes();
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Erro", variant: "destructive" });
     }
   };
 
@@ -130,11 +178,7 @@ export default function Notes() {
       toast({ title: "Anotação excluída" });
       loadNotes();
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Erro", variant: "destructive" });
     }
   };
 
@@ -146,6 +190,7 @@ export default function Notes() {
       image_url: note.image_url || "",
       color: note.color || "orange",
     });
+    setImagePreview(note.image_url || null);
     setIsDialogOpen(true);
   };
 
@@ -153,6 +198,7 @@ export default function Notes() {
     setIsDialogOpen(false);
     setEditingNote(null);
     setFormData({ title: "", content: "", image_url: "", color: "orange" });
+    setImagePreview(null);
   };
 
   if (loading) {
@@ -184,6 +230,9 @@ export default function Notes() {
                 <DialogTitle>
                   {editingNote ? "Editar Anotação" : "Nova Anotação"}
                 </DialogTitle>
+                <DialogDescription>
+                  Crie anotações sobre suas receitas favoritas
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -208,20 +257,51 @@ export default function Notes() {
                       setFormData({ ...formData, content: e.target.value })
                     }
                     placeholder="Escreva sua anotação aqui..."
-                    rows={5}
+                    rows={4}
                   />
                 </div>
 
+                {/* Image Upload */}
                 <div className="space-y-2">
-                  <Label htmlFor="image_url">URL da Imagem (opcional)</Label>
-                  <Input
-                    id="image_url"
-                    type="url"
-                    value={formData.image_url}
-                    onChange={(e) =>
-                      setFormData({ ...formData, image_url: e.target.value })
-                    }
-                    placeholder="https://exemplo.com/imagem.jpg"
+                  <Label>Imagem (opcional)</Label>
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingImage}
+                      className="w-full h-24 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors"
+                    >
+                      {uploadingImage ? (
+                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                      ) : (
+                        <>
+                          <ImagePlus className="w-6 h-6 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Escolher da galeria</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
                   />
                 </div>
 
@@ -234,7 +314,7 @@ export default function Notes() {
                         key={color.id}
                         type="button"
                         onClick={() => setFormData({ ...formData, color: color.id })}
-                        className={`w-10 h-10 rounded-full border-2 transition-all ${
+                        className={`w-8 h-8 rounded-full border-2 transition-all ${
                           color.id === 'orange' ? 'bg-orange-500' :
                           color.id === 'green' ? 'bg-green-500' :
                           color.id === 'blue' ? 'bg-blue-500' :
