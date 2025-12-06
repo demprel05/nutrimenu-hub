@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Heart, Clock, ChefHat, Lightbulb, Loader2, Sparkles, Carrot, Leaf, Zap, Dumbbell, Ban, Drumstick } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/components/AuthProvider";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -60,7 +60,7 @@ export default function RecipeDetail() {
   const [favoriteVariationLoading, setFavoriteVariationLoading] = useState(false);
   const [selectedVariations, setSelectedVariations] = useState<string[]>([]);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
   const { user } = useAuth();
 
   useEffect(() => {
@@ -81,11 +81,7 @@ export default function RecipeDetail() {
       if (error) throw error;
       setRecipe(data);
     } catch (error: any) {
-      toast({
-        title: "Erro ao carregar receita",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao carregar receita: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -119,10 +115,7 @@ export default function RecipeDetail() {
 
   const generateVariation = async () => {
     if (!recipe || selectedVariations.length === 0) {
-      toast({
-        title: "Selecione ao menos uma variação",
-        variant: "destructive",
-      });
+      toast.error("Selecione ao menos uma variação");
       return;
     }
 
@@ -137,14 +130,10 @@ export default function RecipeDetail() {
       setCurrentVariation(data);
       setShowVariationDialog(true);
       setSelectedVariations([]);
-      toast({ title: "Variação criada com sucesso!" });
+      toast.success("Variação criada com sucesso!");
     } catch (error: any) {
       console.error('Error generating variation:', error);
-      toast({
-        title: "Erro ao gerar variação",
-        description: error.message || "Tente novamente mais tarde",
-        variant: "destructive",
-      });
+      toast.error("Erro ao gerar variação: " + (error.message || "Tente novamente mais tarde"));
     } finally {
       setGeneratingVariation(false);
     }
@@ -172,15 +161,11 @@ export default function RecipeDetail() {
 
       if (error) throw error;
 
-      toast({ title: "Variação favoritada!" });
+      toast.success("Variação favoritada!");
       setShowVariationDialog(false);
       setCurrentVariation(null);
     } catch (error: any) {
-      toast({
-        title: "Erro ao favoritar variação",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao favoritar variação: " + error.message);
     } finally {
       setFavoriteVariationLoading(false);
     }
@@ -199,7 +184,7 @@ export default function RecipeDetail() {
 
         if (error) throw error;
         setIsFavorite(false);
-        toast({ title: "Removido dos favoritos" });
+        toast.success("Removido dos favoritos");
       } else {
         const { error } = await supabase
           .from("favorites")
@@ -207,14 +192,10 @@ export default function RecipeDetail() {
 
         if (error) throw error;
         setIsFavorite(true);
-        toast({ title: "Adicionado aos favoritos!" });
+        toast.success("Adicionado aos favoritos!");
       }
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro: " + error.message);
     }
   };
 

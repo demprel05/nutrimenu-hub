@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Loader2, ChefHat } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { useEffect } from "react";
@@ -16,7 +16,7 @@ export default function Auth() {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
   const { user } = useAuth();
 
   useEffect(() => {
@@ -38,10 +38,7 @@ export default function Auth() {
 
         if (error) throw error;
 
-        toast({
-          title: "Bem-vindo de volta!",
-          description: "Login realizado com sucesso.",
-        });
+        toast.success("Bem-vindo de volta!");
         navigate("/");
       } else {
         const { error } = await supabase.auth.signUp({
@@ -57,17 +54,10 @@ export default function Auth() {
 
         if (error) throw error;
 
-        toast({
-          title: "Conta criada!",
-          description: "Verifique seu email para confirmar sua conta.",
-        });
+        toast.success("Conta criada! Verifique seu email.");
       }
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Algo deu errado. Tente novamente.",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Algo deu errado. Tente novamente.");
     } finally {
       setLoading(false);
     }

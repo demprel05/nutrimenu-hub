@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { StickyNote, Plus, Pencil, Trash2, Loader2, ImagePlus, X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/components/AuthProvider";
 import {
   Dialog,
@@ -49,7 +49,7 @@ export default function Notes() {
   const [formData, setFormData] = useState({ title: "", content: "", image_url: "", color: "orange" });
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const { toast } = useToast();
+  
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,7 +72,7 @@ export default function Notes() {
       if (error) throw error;
       setNotes(data || []);
     } catch (error: any) {
-      toast({ title: "Erro ao carregar", variant: "destructive" });
+      toast.error("Erro ao carregar");
     } finally {
       setLoading(false);
     }
@@ -84,13 +84,13 @@ export default function Notes() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast({ title: "Selecione uma imagem válida", variant: "destructive" });
+      toast.error("Selecione uma imagem válida");
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast({ title: "Imagem muito grande (máx 5MB)", variant: "destructive" });
+      toast.error("Imagem muito grande (máx 5MB)");
       return;
     }
 
@@ -115,9 +115,9 @@ export default function Notes() {
 
       setFormData({ ...formData, image_url: publicUrl });
       setImagePreview(publicUrl);
-      toast({ title: "Imagem adicionada!" });
+      toast.success("Imagem adicionada!");
     } catch (error: any) {
-      toast({ title: "Erro ao enviar imagem", variant: "destructive" });
+      toast.error("Erro ao enviar imagem");
       console.error("Upload error:", error);
     } finally {
       setUploadingImage(false);
@@ -146,7 +146,7 @@ export default function Notes() {
           .eq("id", editingNote.id);
 
         if (error) throw error;
-        toast({ title: "Anotação atualizada!" });
+        toast.success("Anotação atualizada!");
       } else {
         const { error } = await supabase.from("notes").insert({
           user_id: user.id,
@@ -157,7 +157,7 @@ export default function Notes() {
         });
 
         if (error) throw error;
-        toast({ title: "Anotação criada!" });
+        toast.success("Anotação criada!");
       }
 
       setIsDialogOpen(false);
@@ -166,7 +166,7 @@ export default function Notes() {
       setEditingNote(null);
       loadNotes();
     } catch (error: any) {
-      toast({ title: "Erro", variant: "destructive" });
+      toast.error("Erro");
     }
   };
 
@@ -175,10 +175,10 @@ export default function Notes() {
       const { error } = await supabase.from("notes").delete().eq("id", id);
 
       if (error) throw error;
-      toast({ title: "Anotação excluída" });
+      toast.success("Anotação excluída");
       loadNotes();
     } catch (error: any) {
-      toast({ title: "Erro", variant: "destructive" });
+      toast.error("Erro");
     }
   };
 

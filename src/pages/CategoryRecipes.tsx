@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Clock, Heart, Loader2, ChefHat } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/components/AuthProvider";
 import { recipeImages } from "@/assets/recipes";
 
@@ -28,7 +28,7 @@ export default function CategoryRecipes() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
   const { user } = useAuth();
 
   useEffect(() => {
@@ -66,11 +66,7 @@ export default function CategoryRecipes() {
         new Set(favoritesResult.data?.map((f: any) => f.recipe_id) || [])
       );
     } catch (error: any) {
-      toast({
-        title: "Erro ao carregar receitas",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao carregar receitas: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -107,11 +103,7 @@ export default function CategoryRecipes() {
         setFavorites((prev) => new Set(prev).add(recipeId));
       }
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro: " + error.message);
     }
   };
 
