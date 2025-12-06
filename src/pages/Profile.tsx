@@ -339,7 +339,7 @@ export default function Profile() {
         {/* Suporte WhatsApp */}
         <Card className="glass-card p-6 mb-6">
           <a
-            href="https://wa.me/5599987985586"
+            href="https://wa.me/5599984214034"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
@@ -349,7 +349,7 @@ export default function Profile() {
             </div>
             <div>
               <p className="font-medium">Suporte</p>
-              <p className="text-sm text-muted-foreground">(99) 98798-5586</p>
+              <p className="text-sm text-muted-foreground">(99) 98421-4034</p>
             </div>
           </a>
         </Card>
