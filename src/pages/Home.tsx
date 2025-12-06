@@ -71,46 +71,32 @@ export default function Home() {
   const searchRecipes = async (query: string) => {
     setLoading(true);
     try {
-      // Busca por título ou descrição
-      const { data, error } = await supabase
+      // Busca TODAS as receitas para filtrar por ingredientes
+      const { data: allRecipes, error } = await supabase
         .from("recipes")
-        .select("id, title, description, image_url, prep_time, ingredients")
-        .or(`title.ilike.%${query}%,description.ilike.%${query}%`)
-        .limit(20);
+        .select("id, title, description, image_url, prep_time, ingredients");
 
       if (error) throw error;
+
+      const queryLower = query.toLowerCase().trim();
       
-      // Filtra também por ingredientes (busca no array)
-      const queryLower = query.toLowerCase();
-      const filteredByIngredients = (data || []).filter((recipe) => {
-        // Verifica se já foi encontrado por título/descrição
+      // Filtra por título, descrição OU ingredientes
+      const filteredRecipes = (allRecipes || []).filter((recipe) => {
+        // Verifica título
         const titleMatch = recipe.title?.toLowerCase().includes(queryLower);
+        
+        // Verifica descrição
         const descMatch = recipe.description?.toLowerCase().includes(queryLower);
         
-        // Verifica ingredientes
+        // Verifica CADA ingrediente no array
         const ingredientMatch = recipe.ingredients?.some((ing: string) =>
           ing.toLowerCase().includes(queryLower)
         );
         
         return titleMatch || descMatch || ingredientMatch;
       });
-      
-      // Se não encontrou nada por título/descrição, busca só por ingredientes em todas as receitas
-      if (filteredByIngredients.length === 0) {
-        const { data: allRecipes } = await supabase
-          .from("recipes")
-          .select("id, title, description, image_url, prep_time, ingredients");
-        
-        const ingredientResults = (allRecipes || []).filter((recipe) =>
-          recipe.ingredients?.some((ing: string) =>
-            ing.toLowerCase().includes(queryLower)
-          )
-        ).slice(0, 10);
-        
-        setSearchResults(ingredientResults);
-      } else {
-        setSearchResults(filteredByIngredients.slice(0, 10));
-      }
+
+      setSearchResults(filteredRecipes.slice(0, 20));
     } catch (error) {
       console.error("Error searching recipes:", error);
     } finally {

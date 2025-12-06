@@ -5,11 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { User, LogOut, Sun, Moon, Loader2, Save, Camera, Pencil, MessageCircle } from "lucide-react";
+import { User, LogOut, Sun, Moon, Loader2, Save, Camera, Pencil, MessageCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Profile() {
   const [profile, setProfile] = useState<any>(null);
@@ -120,6 +126,34 @@ export default function Profile() {
     }
   };
 
+  const handleRemoveAvatar = async () => {
+    if (!user) return;
+
+    setUploadingAvatar(true);
+    try {
+      // Remove from storage
+      const { error: deleteError } = await supabase.storage
+        .from('avatars')
+        .remove([`${user.id}/avatar.jpg`, `${user.id}/avatar.png`, `${user.id}/avatar.webp`, `${user.id}/avatar.jpeg`]);
+
+      // Update profile to remove avatar URL
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: null })
+        .eq("user_id", user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl("");
+      toast({ title: "Foto removida!" });
+    } catch (error: any) {
+      toast({ title: "Erro ao remover foto", variant: "destructive" });
+      console.error("Remove avatar error:", error);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleSaveProfile = async () => {
     if (!user) return;
     setSaving(true);
@@ -214,24 +248,44 @@ export default function Profile() {
         <Card className="glass-card p-6 mb-6">
           <div className="flex items-center gap-4 mb-6">
             <div className="relative group">
-              <Avatar className="w-20 h-20 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                <AvatarImage src={avatarUrl} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
-                  {fullName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              {/* Ícone de edição sempre visível */}
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadingAvatar}
-                className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary rounded-full flex items-center justify-center shadow-lg border-2 border-background hover:scale-110 transition-transform"
-              >
-                {uploadingAvatar ? (
-                  <Loader2 className="w-3.5 h-3.5 text-primary-foreground animate-spin" />
-                ) : (
-                  <Pencil className="w-3.5 h-3.5 text-primary-foreground" />
-                )}
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="relative cursor-pointer">
+                    <Avatar className="w-20 h-20">
+                      <AvatarImage src={avatarUrl} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                        {fullName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {/* Ícone de edição sempre visível */}
+                    <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary rounded-full flex items-center justify-center shadow-lg border-2 border-background hover:scale-110 transition-transform">
+                      {uploadingAvatar ? (
+                        <Loader2 className="w-3.5 h-3.5 text-primary-foreground animate-spin" />
+                      ) : (
+                        <Pencil className="w-3.5 h-3.5 text-primary-foreground" />
+                      )}
+                    </div>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="glass-card border-border">
+                  <DropdownMenuItem 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="cursor-pointer"
+                  >
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Editar
+                  </DropdownMenuItem>
+                  {avatarUrl && (
+                    <DropdownMenuItem 
+                      onClick={handleRemoveAvatar}
+                      className="cursor-pointer text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Remover
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <input
                 ref={fileInputRef}
                 type="file"
