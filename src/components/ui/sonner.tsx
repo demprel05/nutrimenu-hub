@@ -15,12 +15,12 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-background/95 group-[.toaster]:backdrop-blur-sm group-[.toaster]:text-foreground group-[.toaster]:border-primary/30 group-[.toaster]:shadow-lg group-[.toaster]:shadow-primary/10 group-[.toaster]:rounded-xl group-[.toaster]:py-2 group-[.toaster]:px-4 group-[.toaster]:text-sm",
-          description: "group-[.toast]:text-muted-foreground group-[.toast]:text-xs",
-          actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground group-[.toast]:text-xs group-[.toast]:rounded-lg",
-          cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground group-[.toast]:text-xs group-[.toast]:rounded-lg",
-          success: "group-[.toaster]:border-green-500/50 group-[.toaster]:bg-green-500/10",
-          error: "group-[.toaster]:border-red-500/50 group-[.toaster]:bg-red-500/10",
+            "group toast group-[.toaster]:bg-card/90 group-[.toaster]:backdrop-blur-md group-[.toaster]:text-foreground group-[.toaster]:border group-[.toaster]:border-primary/40 group-[.toaster]:shadow-lg group-[.toaster]:shadow-primary/20 group-[.toaster]:rounded-lg group-[.toaster]:py-2 group-[.toaster]:px-3 group-[.toaster]:text-xs group-[.toaster]:min-h-0 group-[.toaster]:max-w-[280px]",
+          description: "group-[.toast]:text-muted-foreground group-[.toast]:text-[10px]",
+          actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground group-[.toast]:text-[10px] group-[.toast]:rounded-md group-[.toast]:px-2 group-[.toast]:py-1",
+          cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground group-[.toast]:text-[10px] group-[.toast]:rounded-md",
+          success: "group-[.toaster]:border-primary/60 group-[.toaster]:bg-primary/10",
+          error: "group-[.toaster]:border-destructive/60 group-[.toaster]:bg-destructive/10",
         },
       }}
       {...props}
