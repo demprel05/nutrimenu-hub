@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { User, LogOut, Sun, Moon, Loader2, Save, Camera, Pencil, MessageCircle, Trash2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/components/AuthProvider";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,7 +27,7 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const { toast } = useToast();
+  
   const { user, signOut } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -77,13 +77,13 @@ export default function Profile() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast({ title: "Selecione uma imagem válida", variant: "destructive" });
+      toast.error("Selecione uma imagem válida");
       return;
     }
 
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      toast({ title: "Imagem muito grande (máx 2MB)", variant: "destructive" });
+      toast.error("Imagem muito grande (máx 2MB)");
       return;
     }
 
@@ -117,9 +117,9 @@ export default function Profile() {
 
       if (updateError) throw updateError;
 
-      toast({ title: "Foto atualizada!" });
+      toast.success("Foto atualizada!");
     } catch (error: any) {
-      toast({ title: "Erro ao enviar foto", variant: "destructive" });
+      toast.error("Erro ao enviar foto");
       console.error("Upload error:", error);
     } finally {
       setUploadingAvatar(false);
@@ -145,9 +145,9 @@ export default function Profile() {
       if (updateError) throw updateError;
 
       setAvatarUrl("");
-      toast({ title: "Foto removida!" });
+      toast.success("Foto removida!");
     } catch (error: any) {
-      toast({ title: "Erro ao remover foto", variant: "destructive" });
+      toast.error("Erro ao remover foto");
       console.error("Remove avatar error:", error);
     } finally {
       setUploadingAvatar(false);
@@ -168,10 +168,10 @@ export default function Profile() {
 
       if (error) throw error;
 
-      toast({ title: "Perfil salvo!" });
+      toast.success("Perfil salvo!");
       loadProfile();
     } catch (error: any) {
-      toast({ title: "Erro ao salvar", variant: "destructive" });
+      toast.error("Erro ao salvar");
     } finally {
       setSaving(false);
     }
@@ -179,12 +179,12 @@ export default function Profile() {
 
   const handleChangePassword = async () => {
     if (!newPassword || newPassword !== confirmPassword) {
-      toast({ title: "Senhas não coincidem", variant: "destructive" });
+      toast.error("Senhas não coincidem");
       return;
     }
 
     if (newPassword.length < 6) {
-      toast({ title: "Mínimo 6 caracteres", variant: "destructive" });
+      toast.error("Mínimo 6 caracteres");
       return;
     }
 
@@ -195,11 +195,11 @@ export default function Profile() {
 
       if (error) throw error;
 
-      toast({ title: "Senha alterada!" });
+      toast.success("Senha alterada!");
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
-      toast({ title: "Erro ao alterar senha", variant: "destructive" });
+      toast.error("Erro ao alterar senha");
     }
   };
 

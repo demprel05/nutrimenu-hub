@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Heart, Loader2, ChefHat, Clock, Sparkles, Lightbulb, Carrot, Leaf, Zap, Dumbbell, Ban, Drumstick } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { recipeImages } from "@/assets/recipes";
@@ -66,7 +66,7 @@ export default function Favorites() {
   const [selectedRecipeForVariation, setSelectedRecipeForVariation] = useState<{ recipe_id: string, variation: VariationData } | null>(null);
   const [isViewingFavoritedVariation, setIsViewingFavoritedVariation] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
   const { user } = useAuth();
 
   useEffect(() => {
@@ -104,11 +104,7 @@ export default function Favorites() {
       if (error) throw error;
       setFavorites(data || []);
     } catch (error: any) {
-      toast({
-        title: "Erro ao carregar favoritos",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao carregar favoritos: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -126,13 +122,9 @@ export default function Favorites() {
       if (error) throw error;
 
       setFavorites((prev) => prev.filter((f) => f.id !== favoriteId));
-      toast({ title: "Removido dos favoritos" });
+      toast.success("Removido dos favoritos");
     } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro: " + error.message);
     }
   };
 
@@ -153,10 +145,7 @@ export default function Favorites() {
 
   const generateVariationFromVariation = async () => {
     if (!selectedRecipeForVariation || selectedVariations.length === 0) {
-      toast({
-        title: "Selecione ao menos uma variação",
-        variant: "destructive",
-      });
+      toast.error("Selecione ao menos uma variação");
       return;
     }
 
@@ -182,14 +171,10 @@ export default function Favorites() {
         setShowVariationDialog(true);
       }, 100);
       
-      toast({ title: "Nova variação criada!" });
+      toast.success("Nova variação criada!");
     } catch (error: any) {
       console.error('Error generating variation:', error);
-      toast({
-        title: "Erro ao gerar variação",
-        description: error.message || "Tente novamente mais tarde",
-        variant: "destructive",
-      });
+      toast.error("Erro ao gerar variação: " + (error.message || "Tente novamente mais tarde"));
     } finally {
       setGeneratingVariation(false);
     }
@@ -216,17 +201,13 @@ export default function Favorites() {
 
       if (error) throw error;
 
-      toast({ title: "Variação favoritada!" });
+      toast.success("Variação favoritada!");
       setShowVariationDialog(false);
       setCurrentVariation(null);
       setSelectedRecipeForVariation(null);
       loadFavorites();
     } catch (error: any) {
-      toast({
-        title: "Erro ao favoritar variação",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao favoritar variação: " + error.message);
     } finally {
       setFavoriteVariationLoading(false);
     }

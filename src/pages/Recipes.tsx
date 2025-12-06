@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Loader2, BookOpen } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { categoryImages } from "@/assets/categories";
 
 interface RecipeCategory {
@@ -18,7 +18,7 @@ export default function Recipes() {
   const [categories, setCategories] = useState<RecipeCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
 
   useEffect(() => {
     loadCategories();
@@ -34,11 +34,7 @@ export default function Recipes() {
       if (error) throw error;
       setCategories(data || []);
     } catch (error: any) {
-      toast({
-        title: "Erro ao carregar categorias",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Erro ao carregar categorias: " + error.message);
     } finally {
       setLoading(false);
     }
