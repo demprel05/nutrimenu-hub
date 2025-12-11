@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { Input } from "@/components/ui/input";
-import { Search, Clock, ChefHat, Loader2 } from "lucide-react";
+import { Search, Clock, ChefHat, Loader2, Star, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { recipeImages } from "@/assets/recipes";
@@ -30,13 +31,18 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Recipe[]>([]);
   const [quickRecipes, setQuickRecipes] = useState<Recipe[]>([]);
+  const [featuredRecipes, setFeaturedRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingQuick, setLoadingQuick] = useState(true);
+  const [loadingFeatured, setLoadingFeatured] = useState(true);
+  const [refreshingQuick, setRefreshingQuick] = useState(false);
+  const [refreshingFeatured, setRefreshingFeatured] = useState(false);
   const navigate = useNavigate();
 
-  // Load quick recipes on mount
+  // Load recipes on mount
   useEffect(() => {
     loadQuickRecipes();
+    loadFeaturedRecipes();
   }, []);
 
   // Search when query changes
@@ -51,20 +57,44 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const loadQuickRecipes = async () => {
+  const loadQuickRecipes = async (isRefresh = false) => {
+    if (isRefresh) setRefreshingQuick(true);
     try {
       const { data, error } = await supabase
         .from("recipes")
         .select("id, title, description, image_url, prep_time, ingredients")
-        .lte("prep_time", 15)
-        .limit(4);
+        .lte("prep_time", 15);
 
       if (error) throw error;
-      setQuickRecipes(data || []);
+      
+      // Shuffle and take 4 random recipes
+      const shuffled = (data || []).sort(() => Math.random() - 0.5);
+      setQuickRecipes(shuffled.slice(0, 4));
     } catch (error) {
       console.error("Error loading quick recipes:", error);
     } finally {
       setLoadingQuick(false);
+      setRefreshingQuick(false);
+    }
+  };
+
+  const loadFeaturedRecipes = async (isRefresh = false) => {
+    if (isRefresh) setRefreshingFeatured(true);
+    try {
+      const { data, error } = await supabase
+        .from("recipes")
+        .select("id, title, description, image_url, prep_time, ingredients");
+
+      if (error) throw error;
+      
+      // Shuffle and take 4 random recipes
+      const shuffled = (data || []).sort(() => Math.random() - 0.5);
+      setFeaturedRecipes(shuffled.slice(0, 4));
+    } catch (error) {
+      console.error("Error loading featured recipes:", error);
+    } finally {
+      setLoadingFeatured(false);
+      setRefreshingFeatured(false);
     }
   };
 
@@ -202,11 +232,22 @@ export default function Home() {
 
         {/* Quick Recipes */}
         {!searchQuery && (
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Clock className="w-5 h-5 text-primary" />
-              <h2 className="text-xl font-bold">Receitas Rápidas</h2>
-              <span className="text-sm text-muted-foreground">(até 15 min)</span>
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-primary" />
+                <h2 className="text-xl font-bold">Receitas Rápidas</h2>
+                <span className="text-sm text-muted-foreground">(até 15 min)</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => loadQuickRecipes(true)}
+                disabled={refreshingQuick}
+                className="h-8 w-8 hover:bg-primary/20"
+              >
+                <RefreshCw className={`w-4 h-4 text-primary ${refreshingQuick ? 'animate-spin' : ''}`} />
+              </Button>
             </div>
             
             {loadingQuick ? (
@@ -244,6 +285,70 @@ export default function Home() {
                       </h3>
                       <p className="text-sm text-muted-foreground">
                         Pronta em {recipe.prep_time} minutos
+                      </p>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Featured Recipes */}
+        {!searchQuery && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Star className="w-5 h-5 text-secondary fill-secondary" />
+                <h2 className="text-xl font-bold">Destaques</h2>
+                <span className="text-sm text-muted-foreground">(mais famosas)</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => loadFeaturedRecipes(true)}
+                disabled={refreshingFeatured}
+                className="h-8 w-8 hover:bg-secondary/20"
+              >
+                <RefreshCw className={`w-4 h-4 text-secondary ${refreshingFeatured ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+            
+            {loadingFeatured ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-8 h-8 animate-spin text-secondary" />
+              </div>
+            ) : featuredRecipes.length === 0 ? (
+              <Card className="glass-card p-8 text-center">
+                <p className="text-muted-foreground">Nenhuma receita em destaque disponível</p>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {featuredRecipes.map((recipe) => (
+                  <Card
+                    key={recipe.id}
+                    className="glass-card overflow-hidden cursor-pointer hover:scale-[1.02] transition-smooth group"
+                    onClick={() => navigate(`/recipe/${recipe.id}`)}
+                  >
+                    <div className="aspect-video bg-gradient-to-br from-secondary/20 to-accent/20 relative overflow-hidden">
+                      {recipe.image_url && recipeImages[recipe.image_url.split('/').pop() || ''] ? (
+                        <img
+                          src={recipeImages[recipe.image_url.split('/').pop() || '']}
+                          alt={recipe.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-smooth"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <ChefHat className="w-12 h-12 text-secondary/50" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold mb-1 group-hover:text-secondary transition-smooth">
+                        {recipe.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {recipe.prep_time} min de preparo
                       </p>
                     </div>
                   </Card>
