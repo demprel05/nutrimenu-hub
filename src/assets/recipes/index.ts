@@ -81,6 +81,48 @@ import tortaLimao from './torta-limao.jpg';
 import docinhoCoco from './docinho-coco.jpg';
 import paveChocolate from './pave-chocolate.jpg';
 
+// New recipe images (40 new images)
+import ovoAbacate from './ovo-abacate.jpg';
+import panquecaAbobrinha from './panqueca-abobrinha.jpg';
+import sucoVerdeDetox from './suco-verde-detox.jpg';
+import vitaminaBanana from './vitamina-banana.jpg';
+import wrapOvo from './wrap-ovo.jpg';
+import bananaCaramelizada from './banana-caramelizada.jpg';
+import bombomCoco from './bombom-coco.jpg';
+import cocadaFit from './cocada-fit.jpg';
+import frozenIogurte from './frozen-iogurte.jpg';
+import gelatinaProteica from './gelatina-proteica.jpg';
+import berinjelaRecheada from './berinjela-recheada.jpg';
+import canjaLeve from './canja-leve.jpg';
+import omeleteFornoJantar from './omelete-forno-jantar.jpg';
+import saladaJantar from './salada-jantar.jpg';
+import sopaDetox from './sopa-detox.jpg';
+import chipsAbobrinha from './chips-abobrinha.jpg';
+import crepiocaQueijo from './crepioca-queijo.jpg';
+import mixOleaginosas from './mix-oleaginosas.jpg';
+import pateAtum from './pate-atum.jpg';
+import rolinhoPeru from './rolinho-peru.jpg';
+import bowlFrangoFeijao from './bowl-frango-feijao.jpg';
+import carneLegumes from './carne-legumes.jpg';
+import frangoArrozIntegral from './frango-arroz-integral.jpg';
+import omeleteProteico from './omelete-proteico.jpg';
+import shakeCaseiro from './shake-caseiro.jpg';
+import cardapioDetox from './cardapio-detox.jpg';
+import lasanhaBerinjela from './lasanha-berinjela.jpg';
+import marmitaFitness from './marmita-fitness.jpg';
+import panquecaFrangoCompleta from './panqueca-frango-completa.jpg';
+import pratoLowcarb from './prato-lowcarb.jpg';
+import saladaAtumCompleta from './salada-atum-completa.jpg';
+import saladaFrangoAbacate from './salada-frango-abacate.jpg';
+import saladaOvoCozido from './salada-ovo-cozido.jpg';
+import saladaMediterranea from './salada-mediterranea.jpg';
+import saladaVerdeDetox from './salada-verde-detox.jpg';
+import boloCenouraFit from './bolo-cenoura-fit.jpg';
+import brownieBatata from './brownie-batata.jpg';
+import docinhoLeite from './docinho-leite.jpg';
+import pacocaFit from './pacoca-fit.jpg';
+import sorveteMorango from './sorvete-morango.jpg';
+
 export const recipeImages: Record<string, string> = {
   'arroz-couve-flor.jpg': arrozCouve,
   'aveia-overnight.jpg': aveiaOvernight,
@@ -163,4 +205,45 @@ export const recipeImages: Record<string, string> = {
   'torta-limao.jpg': tortaLimao,
   'docinho-coco.jpg': docinhoCoco,
   'pave-chocolate.jpg': paveChocolate,
+  // New recipes (40 new images)
+  'ovo-abacate.jpg': ovoAbacate,
+  'panqueca-abobrinha.jpg': panquecaAbobrinha,
+  'suco-verde-detox.jpg': sucoVerdeDetox,
+  'vitamina-banana.jpg': vitaminaBanana,
+  'wrap-ovo.jpg': wrapOvo,
+  'banana-caramelizada.jpg': bananaCaramelizada,
+  'bombom-coco.jpg': bombomCoco,
+  'cocada-fit.jpg': cocadaFit,
+  'frozen-iogurte.jpg': frozenIogurte,
+  'gelatina-proteica.jpg': gelatinaProteica,
+  'berinjela-recheada.jpg': berinjelaRecheada,
+  'canja-leve.jpg': canjaLeve,
+  'omelete-forno-jantar.jpg': omeleteFornoJantar,
+  'salada-jantar.jpg': saladaJantar,
+  'sopa-detox.jpg': sopaDetox,
+  'chips-abobrinha.jpg': chipsAbobrinha,
+  'crepioca-queijo.jpg': crepiocaQueijo,
+  'mix-oleaginosas.jpg': mixOleaginosas,
+  'pate-atum.jpg': pateAtum,
+  'rolinho-peru.jpg': rolinhoPeru,
+  'bowl-frango-feijao.jpg': bowlFrangoFeijao,
+  'carne-legumes.jpg': carneLegumes,
+  'frango-arroz-integral.jpg': frangoArrozIntegral,
+  'omelete-proteico.jpg': omeleteProteico,
+  'shake-caseiro.jpg': shakeCaseiro,
+  'cardapio-detox.jpg': cardapioDetox,
+  'lasanha-berinjela.jpg': lasanhaBerinjela,
+  'marmita-fitness.jpg': marmitaFitness,
+  'panqueca-frango-completa.jpg': panquecaFrangoCompleta,
+  'prato-lowcarb.jpg': pratoLowcarb,
+  'salada-atum-completa.jpg': saladaAtumCompleta,
+  'salada-frango-abacate.jpg': saladaFrangoAbacate,
+  'salada-ovo-cozido.jpg': saladaOvoCozido,
+  'salada-mediterranea.jpg': saladaMediterranea,
+  'salada-verde-detox.jpg': saladaVerdeDetox,
+  'bolo-cenoura-fit.jpg': boloCenouraFit,
+  'brownie-batata.jpg': brownieBatata,
+  'docinho-leite.jpg': docinhoLeite,
+  'pacoca-fit.jpg': pacocaFit,
+  'sorvete-morango.jpg': sorveteMorango,
 };
