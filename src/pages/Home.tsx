@@ -234,10 +234,10 @@ export default function Home() {
         {!searchQuery && (
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-primary" />
-                <h2 className="text-xl font-bold">Receitas Rápidas</h2>
-                <span className="text-sm text-muted-foreground">(até 15 min)</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <Clock className="w-5 h-5 text-primary flex-shrink-0" />
+                <h2 className="text-xl font-bold whitespace-nowrap">Receitas Rápidas</h2>
+                <span className="text-sm text-muted-foreground whitespace-nowrap">(até 15 min)</span>
               </div>
               <Button
                 variant="ghost"
