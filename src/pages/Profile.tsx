@@ -24,8 +24,10 @@ export default function Profile() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [fullName, setFullName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -180,6 +182,11 @@ export default function Profile() {
   };
 
   const handleChangePassword = async () => {
+    if (!currentPassword) {
+      toast.error("Digite sua senha atual");
+      return;
+    }
+
     if (!newPassword || newPassword !== confirmPassword) {
       toast.error("Senhas não coincidem");
       return;
@@ -191,6 +198,18 @@ export default function Profile() {
     }
 
     try {
+      // Re-authenticate with current password
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || "",
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        toast.error("Senha atual incorreta");
+        return;
+      }
+
+      // Update to new password
       const { error } = await supabase.auth.updateUser({
         password: newPassword,
       });
@@ -198,6 +217,7 @@ export default function Profile() {
       if (error) throw error;
 
       toast.success("Senha alterada!");
+      setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
@@ -338,6 +358,31 @@ export default function Profile() {
           <h2 className="text-xl font-bold mb-4">Alterar Senha</h2>
           <div className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="currentPassword">Senha atual</Label>
+              <div className="relative">
+                <Input
+                  id="currentPassword"
+                  type={showCurrentPassword ? "text" : "password"}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showCurrentPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="newPassword">Nova senha</Label>
               <div className="relative">
                 <Input
@@ -391,7 +436,7 @@ export default function Profile() {
 
             <Button
               onClick={handleChangePassword}
-              disabled={!newPassword || !confirmPassword}
+              disabled={!currentPassword || !newPassword || !confirmPassword}
               className="w-full"
               variant="outline"
             >
